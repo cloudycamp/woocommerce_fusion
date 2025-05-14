@@ -271,7 +271,7 @@ class SynchroniseItem(SynchroniseWooCommerce):
 		fields_updated, item.item = self.set_item_fields(item=item.item)
 
 		wc_server = frappe.get_cached_doc("WooCommerce Server", woocommerce_product.woocommerce_server)
-		if wc_server.enable_image_sync:
+		if wc_server.enable_image_sync and woocommerce_product.images:
 			wc_product_images = json.loads(woocommerce_product.images)
 			if len(wc_product_images) > 0:
 				if item.item.image != wc_product_images[0]["src"]:
