@@ -139,8 +139,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "\nsimple\ngrouped\nexternal\nvariable\nvariation\npw-gift-card",
-   "reqd": 1
+   "options": "\nsimple\ngrouped\nexternal\nvariable\nvariation\npw-gift-card"
   },
   {
    "description": "Product status (post status). ",
@@ -161,8 +160,7 @@
    "fieldname": "catalog_visibility",
    "fieldtype": "Select",
    "label": "Catalog Visibility",
-   "options": "visible\ncatalog\nsearch\nhidden",
-   "reqd": 1
+   "options": "visible\ncatalog\nsearch\nhidden"
   },
   {
    "fieldname": "description",
@@ -253,8 +251,7 @@
    "fieldname": "tax_status",
    "fieldtype": "Select",
    "label": "Tax Status",
-   "options": "taxable\nshipping\nnone",
-   "reqd": 1
+   "options": "taxable\nshipping\nnone"
   },
   {
    "fieldname": "tax_class",
@@ -279,8 +276,7 @@
    "fieldname": "stock_status",
    "fieldtype": "Select",
    "label": "Stock status",
-   "options": "instock\noutofstock\nonbackorder",
-   "reqd": 1
+   "options": "instock\noutofstock\nonbackorder"
   },
   {
    "default": "no",
@@ -288,8 +284,7 @@
    "fieldname": "backorders",
    "fieldtype": "Select",
    "label": "Backorders",
-   "options": "no\nnotify\nyes",
-   "reqd": 1
+   "options": "no\nnotify\nyes"
   },
   {
    "default": "0",
@@ -486,14 +481,13 @@
   {
    "fieldname": "regular_price",
    "fieldtype": "Float",
-   "label": "Regular Price",
-   "reqd": 1
+   "label": "Regular Price"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2024-09-01 18:09:12.980102",
+ "modified": "2025-05-15 18:58:49.190996",
  "modified_by": "Administrator",
  "module": "WooCommerce",
  "name": "WooCommerce Product",
@@ -544,6 +538,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

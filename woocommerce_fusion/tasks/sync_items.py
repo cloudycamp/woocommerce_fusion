@@ -8,6 +8,7 @@ from erpnext.stock.doctype.item.item import Item
 from frappe import ValidationError, _, _dict
 from frappe.query_builder import Criterion
 from frappe.utils import get_datetime, now
+from frappe.utils.data import cstr
 from jsonpath_ng.ext import parse
 
 from woocommerce_fusion.exceptions import SyncDisabledError
@@ -425,24 +426,34 @@ class SynchroniseItem(SynchroniseWooCommerce):
 		item.flags.ignore_mandatory = True
 		item.flags.created_by_sync = True
 
-		if wc_server.enable_image_sync:
+		if wc_server.enable_image_sync and wc_product.images:
 			wc_product_images = json.loads(wc_product.images)
 			if len(wc_product_images) > 0:
 				item.image = wc_product_images[0]["src"]
 
 		modified, item = self.set_item_fields(item=item)
 		item.flags.created_by_sync = True
-
-		item.insert()
-
-		self.item = ERPNextItemToSync(
-			item=item,
-			item_woocommerce_server_idx=next(
-				iws.idx
-				for iws in item.woocommerce_servers
-				if iws.woocommerce_server == wc_product.woocommerce_server
-			),
-		)
+		try:
+			item.insert()
+		except frappe.DuplicateEntryError:
+			# If the item already exists, we need to update it
+			item = frappe.get_doc("Item", item.item_code)
+		try:
+			self.item = ERPNextItemToSync(
+				item=item,
+				item_woocommerce_server_idx=next(
+					iws.idx
+					for iws in item.woocommerce_servers
+					if iws.woocommerce_server == wc_product.woocommerce_server
+				),
+			)
+		except StopIteration:
+			# If the item does not exist, we need to create it
+			item = frappe.get_doc("Item", item.item_code)
+			self.item = ERPNextItemToSync(
+				item=item,
+				item_woocommerce_server_idx=len(item.woocommerce_servers) - 1,
+			)
 
 		self.set_sync_hash()
 
@@ -484,7 +495,17 @@ class SynchroniseItem(SynchroniseWooCommerce):
 				if not item_attribute.name:
 					item_attribute.insert()
 				else:
-					item_attribute.save()
+					try:
+						previous: None | frappe.Document = item_attribute._doc_before_save
+						if cstr(previous.modified) != cstr(item_attribute._original_modified):
+							item_attribute._original_modified = previous.modified
+					except AttributeError:
+						# This is a new attribute, so we don't have a previous value
+						pass
+					try:
+						item_attribute.save()
+					except frappe.exceptions.TimestampMismatchError:
+						pass
 
 	def set_item_fields(self, item: Item) -> Tuple[bool, Item]:
 		"""
@@ -614,21 +635,26 @@ def get_list_of_wc_products(
 	# Build filters
 	if date_time_from:
 		filters.append(["WooCommerce Product", "date_modified", ">", date_time_from])
+	product_id = 0
 	if item:
-		filters.append(["WooCommerce Product", "id", "=", item.item_woocommerce_server.woocommerce_id])
+		if item.variant_of:
+			product_id = frappe.db.get_value(item.item_woocommerce_server.doctype, {"parent": item.item.variant_of, "woocommerce_server":item.item_woocommerce_server.woocommerce_server}, "woocommerce_id")
+		else:
+			filters.append(["WooCommerce Product", "id", "=", item.item_woocommerce_server.woocommerce_id])
 		servers = [item.item_woocommerce_server.woocommerce_server]
 
 	while new_results:
 		woocommerce_product = frappe.get_doc({"doctype": "WooCommerce Product"})
-		new_results = woocommerce_product.get_list(
-			args={
+		args = {
 				"filters": filters,
 				"page_lenth": page_length,
 				"start": start,
 				"servers": servers,
 				"as_doc": True,
 			}
-		)
+		if product_id:
+			args['endpoint'] = f"products/{product_id}/variations"
+		new_results = woocommerce_product.get_list(args=args)
 		for wc_product in new_results:
 			wc_products.append(wc_product)
 		start += page_length

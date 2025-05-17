@@ -35,6 +35,15 @@ WC_ORDER_STATUS_MAPPING = {
 	"Trash": "trash",
 	"Partially Shipped": "partial-shipped",
 	"In Completed": "incomplete",
+	"Auto Draft": "auto-draft",
+	"On The Way": "on-the-way",
+	"Order Confirmed": "order-confirmed",
+	"Pending": "order-pending",
+	"ReadyForPickup": "ready-for-pickup",
+	"Exchange": "exchange",
+	"Return": "return",
+	"Stock Out": "stock-out"
+	
 }
 WC_ORDER_STATUS_MAPPING_REVERSE = {v: k for k, v in WC_ORDER_STATUS_MAPPING.items()}
 
